@@ -1,8 +1,13 @@
 from pydantic import BaseModel
 
 class Ticket(BaseModel):
-    id: int | None = None
-    event: str
+    ticket_id: str
+    seller_id: str
+    event_id: str
+    group_id: str
+    quantity: int
+    ask_price: float
+    min_price: float
     date: str
-    price: float
-    seller: str
+    sensitivity: str
+    immediate_sale: bool
