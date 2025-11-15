@@ -1,0 +1,22 @@
+[
+  {
+    "seller_id": "seller_001",
+    "name": "Ava Thompson"
+  },
+  {
+    "seller_id": "seller_002",
+    "name": "Liam Rodriguez"
+  },
+  {
+    "seller_id": "seller_003",
+    "name": "Mia Chen"
+  },
+  {
+    "seller_id": "seller_004",
+    "name": "Noah Patel"
+  },
+  {
+    "seller_id": "seller_005",
+    "name": "Ethan Williams"
+  }
+]
