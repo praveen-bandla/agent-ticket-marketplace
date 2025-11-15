@@ -1,22 +1,26 @@
 [
   {
-    "listing_id": "list_001",
+    "ticket_id": "t_001",
     "seller_id": "001",
     "event_id": "ev_001",
     "group_id": "LOWER_BOWL",
     "quantity": 3,
-    "min_price_per_ticket": 220,
-    "sensitivity_to_price": "low",
+    "ask_price": 280,
+    "min_price": 220,
+    "date": "2025-11-15 17:04:00.123",
+    "sensitivity": "low",
     "immediate_sale": true
   },
   {
-    "listing_id": "list_002",
+    "ticket_id": "t_002",
     "seller_id": "002",
     "event_id": "ev_001",
     "group_id": "FLOOR_PREMIUM",
     "quantity": 2,
-    "min_price_per_ticket": 340,
-    "sensitivity_to_price": "high",
+    "ask_price": 360,
+    "min_price": 340,
+    "date": "2025-11-15 14:36:15.000",
+    "sensitivity": "high",
     "immediate_sale": false
   }
 ]
