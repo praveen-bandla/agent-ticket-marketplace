@@ -1,9 +1,22 @@
 [
   {
-    "id": 1,
-    "event": "Coldplay Concert",
-    "date": "2025-09-12",
-    "price": 180,
-    "seller": "seller_001"
+    "listing_id": "list_001",
+    "seller_id": "001",
+    "event_id": "ev_001",
+    "group_id": "LOWER_BOWL",
+    "quantity": 3,
+    "min_price_per_ticket": 220,
+    "sensitivity_to_price": "low",
+    "immediate_sale": true
+  },
+  {
+    "listing_id": "list_002",
+    "seller_id": "002",
+    "event_id": "ev_001",
+    "group_id": "FLOOR_PREMIUM",
+    "quantity": 2,
+    "min_price_per_ticket": 340,
+    "sensitivity_to_price": "high",
+    "immediate_sale": false
   }
 ]
