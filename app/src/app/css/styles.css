@@ -8,7 +8,7 @@
     top: 0;
     margin-top: 0;
     padding-top: 51px;
-    z-index: 1;
+    z-index: 10;
 }
 .header::after {
     content: "";
@@ -88,9 +88,12 @@ main {
     white-space: break-spaces;
     border: 1px solid rgba(255, 255, 255, 0.5);
 }
-.search-box textarea:focus {
+.search-box textarea:focus, .search-box textarea:active {
     outline: none;
     text-decoration: none;
+}
+.search-box textarea:disabled {
+    cursor: default;
 }
 
 .search-box .icon {
@@ -153,4 +156,63 @@ main {
 }
 .icon path {
     stroke: #fff;
+}
+
+.chat-wrapper.chat-expand {
+    position: fixed;
+    inset: 0;
+    top: 52px;
+    z-index: 5;
+    background-color: #0e0e0e;
+    padding: 0px 0px 62px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+
+}
+.chat-expand .chat-area {
+    min-height: calc(100vh - 120px);
+}
+.chat-expand textarea {
+    margin: 0px auto;
+}
+
+.close-icon {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+}
+
+.chat-log {
+    position: relative;
+    padding: 0rem 4rem;
+    max-width: 48rem;
+    width: 100%;
+    max-height: calc(100vh - 324px);
+    margin: auto;
+    margin-bottom: 2.5rem;
+    overflow: scroll;
+}
+
+.user-msg, .agent-msg {
+    background-color: #1a1a1a;
+    border-radius: 1.25rem;
+    padding: .75rem 1.25rem;
+    margin: 1rem 0;
+    max-width: 80%;
+    width: max-content;
+    font-size: 15px;
+    line-height: 1.5;
+    letter-spacing: .2px;
+}
+.user-msg p, .agent-msg p {
+    margin: 0;
+}
+.user-msg {
+    background-color: #3d3d3d;
+    margin: 0 0 0 auto;
 }

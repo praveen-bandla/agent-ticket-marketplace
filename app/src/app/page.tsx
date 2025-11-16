@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import EmblaCarouselAutoplay from '@/components/EmblaCarouselAutoplay';
 import EmblaCarouselAutoScroll from '@/components/EmblaCarouselAutoscroll';
 import { EmblaOptionsType } from 'embla-carousel';
+import { marked } from 'marked';
 
 
 const getTagline = () => {
@@ -17,34 +18,47 @@ const getTagline = () => {
 };
 
 const AUTOPLAY_OPTIONS: EmblaOptionsType = { loop: true }
-const AUTOPLAY_SLIDE_COUNT = 5
+const AUTOPLAY_SLIDE_COUNT = 4
 const AUTOPLAY_SLIDES = Array.from(Array(AUTOPLAY_SLIDE_COUNT).keys())
+const AUTOPLAY_TITLES = ['Jonas Brothers', 'Ed Sheeran Tickets', 'Lady Gaga Concert', 'Twice: K-Pop']
 
 const AUTOSCROLL_OPTIONS: EmblaOptionsType = { loop: true }
 const AUTOSCROLL_SLIDE_COUNT = 5
 const AUTOSCROLL_SLIDES = Array.from(Array(AUTOSCROLL_SLIDE_COUNT).keys())
+const AUTOSCROLL_TITLES = ['MJ - Michael Jackson', 'Harry Potter and the Cursed Child', 'Stranger Things: The First Shadow', 'Maybe Happy Ending', 'Wicked']
 
 const AUTOSCROLL_OPTIONS_2: EmblaOptionsType = { loop: true }
 const AUTOSCROLL_SLIDE_COUNT_2 = 5
 const AUTOSCROLL_SLIDES_2 = Array.from(Array(AUTOSCROLL_SLIDE_COUNT_2).keys())
+const AUTOSCROLL_TITLES_2 = ['MJ - Michael Jackson', 'Harry Potter and the Cursed Child', 'Stranger Things: The First Shadow', 'Maybe Happy Ending', 'Wicked']
 
 
 export default function Home() {
-  const inputRef = useRef<HTMLTextAreaElement | null>(null);
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const initialHeight = useRef<number>(0);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   type Message = {
     role: string;
     content: string;
   };
 
+  const [tagline, setTagline] = useState('');
   const [search_data, setSearchData] = useState<Message[]>([]);
+  const [isChatting, setChatting] = useState(false);
 
   useEffect(() => {
     if (inputRef.current) {
       initialHeight.current = inputRef.current.scrollHeight;
     }
+    setTagline(getTagline());
+
+    inputRef.current!.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        search();
+      }
+    });
   }, []);
 
   const autosize = () => {
@@ -64,15 +78,36 @@ export default function Home() {
     }, 0);
   };
 
+  function sanitizeInput(input: string) {
+    if (!input) return '';
+    // Remove invisible control characters
+    input = input.replace(/[\x00-\x1F\x7F]/g, '');
+    // Escape HTML special chars
+    input = input
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/'/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+    // Trim and truncate if too long
+    return input.trim().slice(0, 1024);
+  }
+
   const search = async () => {
-    const value = inputRef.current?.value;
+    let value = inputRef.current!.value;
+    value = sanitizeInput(value);
     if (!value || value.length < 5 && value.length > 1024) { return; }
 
-    let input: string | Message[] = search_data;
-    if (search_data.length > 0) {
-      input.push({ role: "user", content: value });
-    }
+    setChatting(true);
+    inputRef.current!.value = '';
+    autosize();
+    inputRef.current!.disabled = true;
+    appendMessage('user', value);
+    const agent_msg = await appendMessage('agent', 'Thinking...');
 
+    let input: string | Message[] = search_data;
+    input.push({ role: "user", content: value });
+    
     // Send search query
     let data = await fetch('http://127.0.0.1:8000/buyer/intent', {
       method: 'POST',
@@ -80,14 +115,47 @@ export default function Home() {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': 'true'
       },
-      body: JSON.stringify({query: input}),
+      body: JSON.stringify({query: JSON.stringify(input)}),
     });
     let res = await data.json();
-    let question = JSON.parse(res.at(-1)['content'].replace('```json', '').replace('```', ''))['question'];
-    console.log(question);
-    console.log('----------')
+    let response = JSON.parse(res.at(-1)['content'].replace('```json', '').replace('```', ''));
+    if ('question' in response) {
+      let question = response['question'];
+      agent_msg.innerHTML = question;
+    } else {
+      let tickets = response;
+    }
+    
     setSearchData(res);
+    
+    const container = chatRef.current!;
+    container.scrollTop = container.scrollHeight;
+
+    inputRef.current!.disabled = false;
   };
+
+  async function appendMessage(role='user', msg: string) {
+    const container = chatRef.current!;
+    const item = document.createElement('div');
+    if (role === 'user') {
+        item.classList.add('user-msg');
+    }
+    else {
+        item.classList.add('agent-msg');
+    }
+    item.innerHTML = await marked.parse(msg);
+    container.appendChild(item);
+    container.scrollTop = container.scrollHeight;
+    return item;
+  }
+
+  const clearChat = () => {
+    setChatting(false); 
+    setSearchData([]);
+    inputRef.current!.value = '';
+    inputRef.current!.disabled = false;
+    chatRef.current!.innerHTML = "";
+  }
   
   return (
     <div>
@@ -95,21 +163,30 @@ export default function Home() {
       <main>
         <div className="search-wrapper">
           <div className="tagline">
-            {getTagline()}
+            {tagline}
           </div>
-          <div className="search-box" id="input-wrapper" ref={wrapperRef}>
-            <textarea name="prompt-textarea" id="search-input" placeholder="Share your vibe..." ref={inputRef} onInput={autosize} rows={1} autoCapitalize="none" autoCorrect="false" autoComplete="one-time-code" spellCheck="false" maxLength={1024} />
-            <div className="icon" onClick={() => search()}>
-              <svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+          <div className={`chat-wrapper ${(isChatting) ? 'chat-expand': ''}`}>
+            <div className="chat-log" ref={chatRef}></div>
+            {(isChatting) 
+              ? <svg className="icon close-icon" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" onClick={() => clearChat()}>
+                  <path id="Vector" d="M18 18L12 12M12 12L6 6M12 12L18 6M12 12L6 18" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              : null
+            }
+            <div className="search-box" id="input-wrapper" ref={wrapperRef}>
+              <textarea name="prompt-textarea" id="search-input" placeholder="Share your vibe..." ref={inputRef} onInput={autosize} rows={1} autoCapitalize="none" autoCorrect="false" autoComplete="one-time-code" spellCheck="false" maxLength={1024} />
+              <div className="icon" onClick={() => search()}>
+                <svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
             </div>
           </div>
         </div>
         <div className="section-wrapper">
-          <EmblaCarouselAutoplay slides={AUTOPLAY_SLIDES} options={AUTOPLAY_OPTIONS} />
-          <EmblaCarouselAutoScroll slides={AUTOSCROLL_SLIDES} options={AUTOSCROLL_OPTIONS} speed={0.35} />
-          <EmblaCarouselAutoScroll slides={AUTOSCROLL_SLIDES_2} options={AUTOSCROLL_OPTIONS_2} speed={0.5} />
+          <EmblaCarouselAutoplay slides={AUTOPLAY_SLIDES} options={AUTOPLAY_OPTIONS} titles={AUTOPLAY_TITLES} />
+          <EmblaCarouselAutoScroll slides={AUTOSCROLL_SLIDES} options={AUTOSCROLL_OPTIONS} speed={0.35} titles={AUTOSCROLL_TITLES} />
+          <EmblaCarouselAutoScroll slides={AUTOSCROLL_SLIDES_2} options={AUTOSCROLL_OPTIONS_2} speed={0.5} titles={AUTOSCROLL_TITLES_2} />
         </div>
         <div className="cta-wrapper">
           <a href="">
@@ -120,7 +197,7 @@ export default function Home() {
           </a>
         </div>
       </main>
-      
+      <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     </div>
   );
 }

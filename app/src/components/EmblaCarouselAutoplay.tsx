@@ -8,7 +8,8 @@ import useEmblaCarousel from 'embla-carousel-react';
 import styles from '@/app/css/embla_autoplay.module.css';
 
 type PropType = {
-  slides: number[]
+  slides: number[],
+  titles: string[],
   options?: EmblaOptionsType
 }
 
@@ -22,7 +23,7 @@ const EmblaCarouselAutoplay: React.FC<PropType> = (props) => {
         <div className={styles.embla__container}>
           {slides.map((index) => (
             <div className={styles.embla__slide} key={index}>
-              <div className={styles.embla__slide__number}>{index + 1}</div>
+              <div className={styles.embla__slide__number} style={{backgroundImage: `url(/images/events/${index+1}.jpg)`}}><span>{props.titles[index]}</span></div>
             </div>
           ))}
         </div>

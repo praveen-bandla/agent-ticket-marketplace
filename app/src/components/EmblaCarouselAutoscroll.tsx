@@ -9,6 +9,7 @@ import styles from '@/app/css/embla_autoscroll.module.css';
 
 type PropType = {
   slides: number[]
+  titles: string[]
   options?: EmblaOptionsType
   speed?: number
 }
@@ -35,9 +36,7 @@ const EmblaCarouselAutoScroll: React.FC<PropType> = (props) => {
         <div className={styles.embla__container}>
           {slides.map((index) => (
             <div className={styles.embla__slide} key={index}>
-              <div className={styles.embla__slide__number}>
-                <span>{index + 1}</span>
-              </div>
+              <div className={styles.embla__slide__number} style={{backgroundImage: `url(/images/broadways/${index+1}.jpg)`}}><span>{props.titles[index]}</span></div>
             </div>
           ))}
         </div>
