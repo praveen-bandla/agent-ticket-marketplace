@@ -1,3 +1,5 @@
+import json
+from typing import List
 from fastapi import APIRouter
 from api.models.buyer import BuyerQuery
 from api.services.openrouter_client import call_openrouter
@@ -24,7 +26,17 @@ async def get_buyer_intent(payload: BuyerQuery):
     - sensitivity (default "normal")
     - certainty (default "definitely")
 
-    Respond ONLY in JSON with:
+    clarifying_questions = {
+        "event_name": "What artist or event are you looking for?",
+        "venue": "Which venue or place do you prefer?",
+        "num_tickets": "How many tickets do you need?",
+        "ask_price": "What is your starting offer per ticket?",
+        "max_price": "What is the most you're willing to pay per ticket?"
+    }
+
+    Generate a single compund question that sounds natural in case of multiple missing fields.
+
+    Respond ONLY in JSON format with:
     {
         "extracted": {
             "event_name": "...",
@@ -34,7 +46,8 @@ async def get_buyer_intent(payload: BuyerQuery):
             "sensitivity": "...",
             "certainty": "..."
         },
-        "missing": ["venue", "price"]
+        "missing": ["venue", "price"],
+        "question": "Question for list of missing items"
     }
 
     Rules:
@@ -43,10 +56,19 @@ async def get_buyer_intent(payload: BuyerQuery):
     - Do NOT ask questions here. The backend handles follow-up.
     """
 
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": payload.query}
-    ]
+    if isinstance(payload.query, List) and len(payload.query) > 0:
+        messages = payload.query
+    else:
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": payload.query}
+        ]
 
-    response = 'test'#call_openrouter(messages)
-    return [{"role": "user", "content": payload.query}, {"role": "system", "content": response}]
+    response = call_openrouter(messages)
+    missing = json.loads(response)["missing"]
+    if (missing) > 0:
+        messages.append({"role": "assistant", "content": response})
+        return messages
+    else:
+        # filter
+        return None

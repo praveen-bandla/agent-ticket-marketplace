@@ -15,7 +15,7 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
 
-def call_openrouter(messages, model="google/gemma-3-27b-it:free"):
+def call_openrouter(messages, model="google/gemma-3-27b-it:free") -> str:
     response = requests.post(
         url = OPENROUTER_URL,
         headers = {
@@ -38,12 +38,3 @@ def call_openrouter_with_prompt(prompt, model="google/gemma-3-27b-it:free"):
         "content": prompt
     }]
     return call_openrouter(messages, model=model)
-
-# # test
-
-# if __name__ == "__main__":
-#     msg = [{
-#         "role": "user",
-#         "content": "Hello, how are you?"
-#     }]
-#     print(call_openrouter(msg))

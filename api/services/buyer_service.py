@@ -1,4 +1,4 @@
-def next_clarification_question(missing_field):
+def _clarification_question(missing_field):
     questions = {
         "event_name": "What artist or event are you looking for?",
         "venue": "Which venue or place do you prefer?",

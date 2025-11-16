@@ -2,6 +2,7 @@
 Data model for a buyer in the ticket marketplace.
 """
 
+from typing import Any, Dict, List, Union
 from pydantic import BaseModel
 from configs import BUYERS
 import json
@@ -21,8 +22,7 @@ class Buyer(BaseModel):
     
 
 class BuyerQuery(BaseModel):
-    query: str
-
+    query: Union[str, List[Dict[str, Any]]]
 
 class BuyerIntent(BaseModel):
     event_name: str
