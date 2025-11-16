@@ -1,0 +1,5 @@
+MAX_ROUNDS = 5
+BIDS_JSON = "api/data/bids.json"
+TICKETS_JSON = "api/data/tickets.json"
+EVENTS_JSON = "api/data/events.json"
+VENUES_JSON = "api/data/venues.json"

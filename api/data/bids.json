@@ -6,8 +6,7 @@
     "num_tickets": 2,
     "max_price_per_ticket": 260,
     "allowed_groups": [],
-    "sensitivity_to_price": "low",
-    "priority": "BUY_NOW"   
+    "sensitivity_to_price": "low"
   },
   {
     "bid_id": "bid_002",
@@ -16,7 +15,6 @@
     "num_tickets": 3,
     "max_price_per_ticket": 140,
     "allowed_groups": ["UPPER_BOWL", "SIDE_GALLERY"],
-    "sensitivity_to_price": "high",
-    "priority": "IF_GOOD_DEAL"
+    "sensitivity_to_price": "high"
   }
 ]
