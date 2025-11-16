@@ -18,3 +18,18 @@ class Buyer(BaseModel):
         buyer_data = next((b for b in buyers if b["buyer_id"] == buyer_id), None)
 
         return cls(buyer_id=buyer_data["buyer_id"], buyer_name=buyer_data["name"])
+    
+
+class BuyerQuery(BaseModel):
+    query: str
+
+
+class BuyerIntent(BaseModel):
+    event_name: str
+    venue: str
+    num_tickets: int
+    price: float
+    max_price: float
+    seat_type: str = "any"
+    sensitivity: str = "normal"
+    certainty: str = "definitely"

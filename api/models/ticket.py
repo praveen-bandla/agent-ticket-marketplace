@@ -15,7 +15,7 @@ class Ticket(BaseModel):
     event_id: str
     group_id: str
     quantity: int
-    ask_price: float
+    price: float
     min_price: float
     date: str
     sensitivity: str
