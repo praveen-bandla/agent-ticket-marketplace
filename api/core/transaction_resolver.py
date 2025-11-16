@@ -130,8 +130,8 @@ class TransactionResolver:
             bid_ids_to_remove.append(agreement[0])
             ticket_ids_to_remove.append(agreement[1])
 
-        self.remove_bids(bid_ids_to_remove)
-        self.remove_tickets(ticket_ids_to_remove)
+        #self.remove_bids(bid_ids_to_remove)
+        #self.remove_tickets(ticket_ids_to_remove)
         self.save_transactions(transaction_objects)
         return 
     
