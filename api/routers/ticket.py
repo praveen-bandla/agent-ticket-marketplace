@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException
 from api.models.ticket import Ticket
 from api.services.ticket_service import delete_ticket, list_tickets, create_ticket
 
-router = APIRouter(prefix="/tickets", tags=["tickets"])
+router = APIRouter(prefix="/ticket", tags=["ticket"])
 
 @router.get("/")
 def get_tickets():

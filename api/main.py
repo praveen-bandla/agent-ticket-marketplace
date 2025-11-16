@@ -7,11 +7,13 @@ file for running the backend service.
 """
 
 from fastapi import FastAPI
-from api.routers import tickets
+from api.routers import buyer
+from api.routers import ticket
 
 app = FastAPI(title="Agentic Ticket Marketplace API")
 
-app.include_router(tickets.router)
+app.include_router(buyer.router)
+app.include_router(ticket.router)
 
 @app.get("/")
 def root():
