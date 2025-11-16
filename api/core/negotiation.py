@@ -28,7 +28,7 @@ class Negotiation:
         self.submarket = submarket
         self.is_resolved = False
 
-        self.agreement: Optional[Tuple[str, str, float, int, List[dict]]] = None  # (bid_id, ticket_id, price, quantity, conversation_history)
+        self.agreement: Optional[Tuple[int, int, float, int]] = None  # (price, quantity)
         self.rounds = 1
         self.max_rounds = MAX_ROUNDS
         self.shared_conversation_history: List[dict] = []
@@ -59,8 +59,7 @@ class Negotiation:
                 self.buyer_negotiator.bid.get_bid_quantity(),
                 self.seller_negotiator.ticket.get_ticket_quantity()
             )
-            self.shared_conversation_history = self.buyer_negotiator.get_conversation_history()
-            self.agreement = (self.buyer_negotiator.bid.bid_id, self.seller_negotiator.ticket.ticket_id, agreed_price, agreed_quantity, self.shared_conversation_history)
+            self.agreement = (self.buyer_negotiator.bid.bid_id, self.seller_negotiator.ticket.ticket_id, agreed_price, agreed_quantity)
             self.is_resolved = True
             return self.agreement
         
@@ -78,15 +77,15 @@ class Negotiation:
             
             if self.buyer_negotiator.is_resolved():
                 self.is_resolved = True
+                self.agreement = (self.buyer_negotiator.bid.bid_id, self.seller_negotiator.ticket.ticket_id, self.buyer_negotiator.current_offer, self.quantity)
                 self.shared_conversation_history = self.buyer_negotiator.get_conversation_history()
-                self.agreement = (self.buyer_negotiator.bid.bid_id, self.seller_negotiator.ticket.ticket_id, self.buyer_negotiator.current_offer, self.quantity, self.shared_conversation_history)
                 self.logger.info(f"Negotiation RESOLVED by buyer for {self.negotiation_id}: price=${self.buyer_negotiator.current_offer}, quantity={self.quantity}")
                 return self.agreement
 
             if self.seller_negotiator.is_resolved():
                 self.is_resolved = True
+                self.agreement = (self.buyer_negotiator.bid.bid_id, self.seller_negotiator.ticket.ticket_id, self.seller_negotiator.current_offer, self.quantity)
                 self.shared_conversation_history = self.buyer_negotiator.get_conversation_history()
-                self.agreement = (self.buyer_negotiator.bid.bid_id, self.seller_negotiator.ticket.ticket_id, self.seller_negotiator.current_offer, self.quantity, self.shared_conversation_history)
                 self.logger.info(f"Negotiation RESOLVED by seller for {self.negotiation_id}: price=${self.seller_negotiator.current_offer}, quantity={self.quantity}")
                 return self.agreement
             
@@ -103,15 +102,15 @@ class Negotiation:
         # Check final resolution status after max rounds
         if self.buyer_negotiator.is_resolved():
             self.is_resolved = True
+            self.agreement = (self.buyer_negotiator.bid.bid_id, self.seller_negotiator.ticket.ticket_id, self.buyer_negotiator.current_offer, self.quantity)
             self.shared_conversation_history = self.buyer_negotiator.get_conversation_history()
-            self.agreement = (self.buyer_negotiator.bid.bid_id, self.seller_negotiator.ticket.ticket_id, self.buyer_negotiator.current_offer, self.quantity, self.shared_conversation_history)
             self.logger.info(f"Negotiation FINAL RESOLUTION by buyer for {self.negotiation_id}: price=${self.buyer_negotiator.current_offer}, quantity={self.quantity}")
             return self.agreement
             
         if self.seller_negotiator.is_resolved():
             self.is_resolved = True
+            self.agreement = (self.buyer_negotiator.bid.bid_id, self.seller_negotiator.ticket.ticket_id, self.seller_negotiator.current_offer, self.quantity)
             self.shared_conversation_history = self.buyer_negotiator.get_conversation_history()
-            self.agreement = (self.buyer_negotiator.bid.bid_id, self.seller_negotiator.ticket.ticket_id, self.seller_negotiator.current_offer, self.quantity, self.shared_conversation_history)
             self.logger.info(f"Negotiation FINAL RESOLUTION by seller for {self.negotiation_id}: price=${self.seller_negotiator.current_offer}, quantity={self.quantity}")
             return self.agreement
             
