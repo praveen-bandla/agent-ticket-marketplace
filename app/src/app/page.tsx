@@ -1,6 +1,10 @@
+'use client';
+
+import { useRef, useEffect } from 'react';
 import EmblaCarouselAutoplay from '@/components/EmblaCarouselAutoplay';
 import EmblaCarouselAutoScroll from '@/components/EmblaCarouselAutoscroll';
 import { EmblaOptionsType } from 'embla-carousel';
+
 
 const getTagline = () => {
   const lines = [
@@ -26,6 +30,33 @@ const AUTOSCROLL_SLIDES_2 = Array.from(Array(AUTOSCROLL_SLIDE_COUNT_2).keys())
 
 
 export default function Home() {
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const initialHeight = useRef<number>(0);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      initialHeight.current = inputRef.current.scrollHeight;
+    }
+  }, []);
+
+  const autosize = () => {
+    const el = inputRef.current;
+    if (!el) return;
+
+    setTimeout(() => {
+      el.style.height = "";
+      const newHeight = el.scrollHeight;
+
+      if (newHeight > initialHeight.current) {
+        el.style.height = newHeight + "px";
+        wrapperRef.current?.classList.add("expand");
+      } else {
+        wrapperRef.current?.classList.remove("expand");
+      }
+    }, 0);
+  };
+  
   return (
     <div>
       <div className="header"></div>
@@ -34,25 +65,19 @@ export default function Home() {
           <div className="tagline">
             {getTagline()}
           </div>
-          <div className="search-box">
-            <input type="text" placeholder="Share your vibe..." autoCapitalize="none" autoCorrect="false" autoComplete="off" spellCheck="false" />
-            <svg className="icon" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+          <div className="search-box" id="input-wrapper" ref={wrapperRef}>
+            <textarea name="prompt-textarea" id="search-input" placeholder="Share your vibe..." ref={inputRef} onInput={autosize} rows={1} autoCapitalize="none" autoCorrect="false" autoComplete="one-time-code" spellCheck="false" maxLength={1024} />
+            <div className="icon">
+              <svg width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.7955 15.8111L21 21M18 10.5C18 14.6421 14.6421 18 10.5 18C6.35786 18 3 14.6421 3 10.5C3 6.35786 6.35786 3 10.5 3C14.6421 3 18 6.35786 18 10.5Z" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
           </div>
         </div>
         <div className="section-wrapper">
           <EmblaCarouselAutoplay slides={AUTOPLAY_SLIDES} options={AUTOPLAY_OPTIONS} />
-          <EmblaCarouselAutoScroll slides={AUTOSCROLL_SLIDES} options={AUTOSCROLL_OPTIONS} speed={0.3} />
-          <EmblaCarouselAutoScroll slides={AUTOSCROLL_SLIDES_2} options={AUTOSCROLL_OPTIONS_2} speed={0.6} />
-          <div className="section-3">
-            <div className="item"></div>
-            <div className="item"></div>
-            <div className="item"></div>
-            <div className="item"></div>
-            <div className="item"></div>
-            <div className="item"></div>
-          </div>
+          <EmblaCarouselAutoScroll slides={AUTOSCROLL_SLIDES} options={AUTOSCROLL_OPTIONS} speed={0.35} />
+          <EmblaCarouselAutoScroll slides={AUTOSCROLL_SLIDES_2} options={AUTOSCROLL_OPTIONS_2} speed={0.5} />
         </div>
         <div className="cta-wrapper">
           <a href="">
