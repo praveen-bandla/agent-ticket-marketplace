@@ -12,7 +12,7 @@ class Seller(BaseModel):
     seller_name: str
 
     @classmethod
-    def from_seller_id(cls, seller_id: str) -> "Seller":
+    def get_seller_by_id(cls, seller_id: str) -> "Seller":
         with open(SELLERS, "r") as f:
             sellers = json.load(f)
 

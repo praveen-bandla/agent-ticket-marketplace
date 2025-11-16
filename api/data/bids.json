@@ -4,8 +4,8 @@
     "buyer_id": "buyer_001",
     "event_id": "event_001",
     "num_tickets": 2,
-    "max_price": 360,
-    "price": 300,
+    "max_price": 260,
+    "price": 200,
     "allowed_groups": [],
     "sensitivity_to_price": "low"
   },

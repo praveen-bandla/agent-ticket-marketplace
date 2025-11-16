@@ -8,6 +8,7 @@ from api.models.ticket import Ticket
 from typing import List, Optional, Tuple
 from api.core.agents.buyer_negotiator import BuyerNegotiator
 from api.core.agents.seller_negotiator import SellerNegotiator
+from configs import MAX_ROUNDS
 
 
 class Negotiation:
@@ -26,14 +27,20 @@ class Negotiation:
         self.submarket = submarket
         self.is_resolved = False
         self.agreement: Optional[Tuple[float, int]] = None  # (price, quantity)
-        self.rounds = 0
+        self.rounds = 1
+        self.max_rounds = MAX_ROUNDS
         self.shared_conversation_history: List[dict] = []
+        self.quantity = min(
+            self.buyer_negotiator.bid.get_bid_quantity(),
+            self.seller_negotiator.ticket.get_ticket_quantity()
+        )
 
     def resolve(self) -> Optional[Tuple[float, int]]:
         """
         Conducts the negotiation until an agreement is reached or max rounds exceeded.
         Returns the agreement (price, quantity) if successful, else None.
         """
+
         seller_price = self.seller_negotiator.ticket.get_ticket_price()
         buyer_price = self.buyer_negotiator.bid.get_bid_price()
 
@@ -47,7 +54,36 @@ class Negotiation:
             self.is_resolved = True
             return self.agreement
         
+        else:
+            pass
+        
+    def simulate_negotiation(self):
+        """
+        Simulates an entire negotiation process between buyer and seller.
+        """
+        while not self.is_resolved and self.rounds <= self.max_rounds:
+            
+            if self.buyer_negotiator.is_resolved():
+                self.is_resolved = True
+                self.agreement = (self.buyer_negotiator.current_offer, self.quantity)
+                return self.agreement
 
+            
+            if self.seller_negotiator.is_resolved():
+                self.is_resolved = True
+                self.agreement = (self.seller_negotiator.current_offer, self.quantity)
+                return self.agreement
+            
+            buyer_response = self.buyer_negotiator.negotiate()
+            seller_response = self.seller_negotiator.negotiate()
+            self.buyer_negotiator.process_seller_response(seller_response)
+            self.seller_negotiator.process_buyer_response(buyer_response)
+
+            self.rounds += 1
+
+        self.shared_conversation_history = self.buyer_negotiator.get_conversation_history()
+
+        return None
 
 # test
 
@@ -64,10 +100,8 @@ if __name__ == "__main__":
     seller_negotiator = SellerNegotiator(ticket, submarket)
 
     negotiation = Negotiation(buyer_negotiator, seller_negotiator, submarket)
-    result = negotiation.resolve()
-    if result:
-        print(f"Agreement reached: Price ${result[0]}, Quantity {result[1]}")
-    else:
-        print("No agreement reached.")
-
+    result = negotiation.simulate_negotiation()
+    for line in negotiation.shared_conversation_history:
+        print(line)
+    print("Negotiation Result:", result)
     
