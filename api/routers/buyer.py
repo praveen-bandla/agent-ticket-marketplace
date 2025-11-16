@@ -1,19 +1,25 @@
 import json
 from typing import List
+import uuid
 from fastapi import APIRouter
+from api.core.sub_market import SubMarket
 from api.models.buyer import BuyerQuery
+from api.models.event import Event
+from api.services.buyer_service import append_bid, write_search_results
+from api.services.event_service import get_event_by_id, get_events, get_venues
 from api.services.openrouter_client import call_openrouter
+from api.services.ticket_service import list_tickets
 
 router = APIRouter(prefix="/buyer", tags=["buyer"])
 
 @router.post("/intent")
 async def get_buyer_intent(payload: BuyerQuery):
     """
-    Takes natural language from buyer and returns extracted intent.
+    Takes buyer request inatural language from buyer and returns extracted intent.
     Uses OpenRouter LLM to parse fields + detect missing parameters.
     """
     system_prompt = """
-    You are an assistant that extracts ticket-purchase intent from natural language.
+    Extract these fields from the given buyer request. Check if these fields are provided. The buyer doesn't need to mention them explicitely and it's your job to understand the text.
     Required fields:
     - event_name
     - venue
@@ -26,15 +32,14 @@ async def get_buyer_intent(payload: BuyerQuery):
     - sensitivity (default "normal")
     - certainty (default "definitely")
 
-    clarifying_questions = {
-        "event_name": "What artist or event are you looking for?",
-        "venue": "Which venue or place do you prefer?",
-        "num_tickets": "How many tickets do you need?",
-        "ask_price": "What is your starting offer per ticket?",
-        "max_price": "What is the most you're willing to pay per ticket?"
-    }
+    clarifying_questions if not provided already:
+    "What artist or event are you looking for?",
+    "Which venue or place do you prefer?",
+    "How many tickets do you need?",
+    "What is your starting offer per ticket?",
+    "What is the most you're willing to pay per ticket?"
 
-    Generate a single compund question that sounds natural in case of multiple missing fields.
+    Generate a single question that sounds natural to request values for any required missing fields.
 
     Respond ONLY in JSON format with:
     {
@@ -47,7 +52,15 @@ async def get_buyer_intent(payload: BuyerQuery):
             "certainty": "..."
         },
         "missing": ["venue", "price"],
-        "question": "Question for list of missing items"
+        "question": "Question for list of missing items",
+        "results": {
+            "event_id": "...",
+            "num_tickets": ...,
+            "max_price": ...,
+            "price": ...,
+            "allowed_groups": [...],
+            "sensitivity_to_price": "..."
+        }
     }
 
     Rules:
@@ -61,14 +74,31 @@ async def get_buyer_intent(payload: BuyerQuery):
     else:
         messages = [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": payload.query}
+            {"role": "system", "content": f"Events data: {json.dumps(get_events())}"},
+            {"role": "system", "content": f"Venues data: {json.dumps(get_venues())}"},
+            {"role": "user", "content": f"Buyer request: {payload.query}. Please extract the information"}
         ]
 
-    response = call_openrouter(messages)
+    response = call_openrouter(messages).replace('```json', '').replace('```', '')
     missing = json.loads(response)["missing"]
-    if (missing) > 0:
+    if len(missing) > 0:
         messages.append({"role": "assistant", "content": response})
         return messages
     else:
         # filter
-        return None
+        bid = json.loads(response)["results"]
+        bid["bid_id"] = str(uuid.uuid4())
+        bid["buyer_id"] = str(uuid.uuid4())
+        append_bid(bid)
+        event = get_event_by_id(bid["event_id"])
+        messages.pop(0)
+        messages.append({"role": "user", "content": f"Bid parameters: {str(bid)}. Now the task has changed where you need to filter the tickets and return in the same list of JSON objects."})
+        messages.append({"role": "system", "content": f"Tickets data: {json.dumps(list_tickets())}"})
+        messages.append({"role": "system", "content": f"Find the list of tickets that match the criteria provided by the user. List the top 5 based on price and seat's group_id. The seat groups are prioritized base on this relationship: {event["reference_values"]}"})
+        messages.append({"role": "assistant", "content": "I'll now filter the available tickets and prove output in clean JSON format..."})
+        response = call_openrouter(messages).replace('```json', '').replace('```', '')
+        tickets = json.loads(response)
+        search_results = [{"bid_id": bid["bid_id"], "ticket_id": t["ticket_id"]} for t in tickets]
+        write_search_results(search_results)
+        messages.append({"role": "assistant", "content": response})
+        return messages
