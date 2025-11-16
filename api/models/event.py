@@ -16,7 +16,7 @@ class Event(BaseModel):
     venue: Venue
 
     @classmethod
-    def from_event_id(cls, event_id: str) -> "Event":
+    def get_event_by_id(cls, event_id: str) -> "Event":
         with open(EVENTS_JSON, "r") as f:
             events = json.load(f)
 

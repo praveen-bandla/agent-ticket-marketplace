@@ -56,35 +56,52 @@ class SubMarket:
         ]
         
         return matching_bids
+    
+    def _summarize_market(self) -> str:
+        """
+        Generates a summary of the submarket state.
+        """
+        ticket_prices = [
+            ticket.get_ticket_price()
+            for ticket in self.tickets
+            for _ in range(ticket.quantity)
+        ]
 
-    def get_num_tickets(self) -> int:
-        """
-        Returns the number of tickets in this submarket.
-        """
-        return len(self.tickets)
+        bid_prices = [
+            bid.get_bid_price()
+            for bid in self.bids
+            for _ in range(bid.get_bid_quantity())
+        ]
 
-    def get_num_bids(self) -> int:
-        """
-        Returns the number of bids in this submarket.
-        """
-        return len(self.bids)
+        avg_ticket_price = sum(ticket_prices) / len(ticket_prices) if ticket_prices else 0
+        avg_bid_price = sum(bid_prices) / len(bid_prices) if bid_prices else 0
+        num_tickets = sum(ticket.quantity for ticket in self.tickets)
+        num_bids = sum(bid.get_bid_quantity() for bid in self.bids)
+        median_ticket_price = sorted(ticket_prices)[len(ticket_prices)//2] if ticket_prices else 0
+        median_bid_price = sorted(bid_prices)[len(bid_prices)//2] if bid_prices else 0
 
+        summary = (
+            f"  Number of Tickets: {num_tickets}\n"
+            f"  Number of Bids: {num_bids}\n"
+            f"  Average Ticket Price: ${avg_ticket_price:.2f}\n"
+            f"  Median Ticket Price: ${median_ticket_price:.2f}\n"
+            f"  Average Bid Price: ${avg_bid_price:.2f}\n"
+            f"  Median Bid Price: ${median_bid_price:.2f}\n"
+        )
+
+        return summary
 
 # test
 
-# if __name__ == "__main__":
-#     # # add path to PYTHONPATH and run this file to test
-#     # import os
-#     # import sys
-#     # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
-#     import api.models.event as event
+if __name__ == "__main__":
+    import api.models.event as event
 
-#     submarket = SubMarket(event=event.Event.from_event_id("001"), group_id="FLOOR_PREMIUM")
-#     print(f"Number of tickets in submarket: {submarket.get_num_tickets()}")
-#     print(f"Number of bids in submarket: {submarket.get_num_bids()}")
-#     print("Tickets:")
-#     for ticket in submarket.tickets:
-#         print(ticket)
-#     print("Bids:")
-#     for bid in submarket.bids:
-#         print(bid)
+    submarket = SubMarket(event=event.Event.from_event_id("001"), group_id="FLOOR_PREMIUM")
+    print("Tickets:")
+    for ticket in submarket.tickets:
+        print(ticket)
+    print("Bids:")
+    for bid in submarket.bids:
+        print(bid)
+
+    print(submarket._summarize_market())
