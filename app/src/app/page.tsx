@@ -1,5 +1,6 @@
-import InfiniteCarousel from "@/components/carousel";
-
+import EmblaCarouselAutoplay from '@/components/EmblaCarouselAutoplay';
+import EmblaCarouselAutoScroll from '@/components/EmblaCarouselAutoscroll';
+import { EmblaOptionsType } from 'embla-carousel';
 
 const getTagline = () => {
   const lines = [
@@ -10,6 +11,18 @@ const getTagline = () => {
   let i = Math.floor(Math.random() * lines.length);
   return lines[i];
 };
+
+const AUTOPLAY_OPTIONS: EmblaOptionsType = { loop: true }
+const AUTOPLAY_SLIDE_COUNT = 5
+const AUTOPLAY_SLIDES = Array.from(Array(AUTOPLAY_SLIDE_COUNT).keys())
+
+const AUTOSCROLL_OPTIONS: EmblaOptionsType = { loop: true }
+const AUTOSCROLL_SLIDE_COUNT = 5
+const AUTOSCROLL_SLIDES = Array.from(Array(AUTOSCROLL_SLIDE_COUNT).keys())
+
+const AUTOSCROLL_OPTIONS_2: EmblaOptionsType = { loop: true }
+const AUTOSCROLL_SLIDE_COUNT_2 = 5
+const AUTOSCROLL_SLIDES_2 = Array.from(Array(AUTOSCROLL_SLIDE_COUNT_2).keys())
 
 
 export default function Home() {
@@ -29,15 +42,9 @@ export default function Home() {
           </div>
         </div>
         <div className="section-wrapper">
-          <InfiniteCarousel/>
-          <div className="section-2">
-            <div className="item"></div>
-            <div className="item"></div>
-            <div className="item"></div>
-            <div className="item"></div>
-            <div className="item"></div>
-            <div className="item"></div>
-          </div>
+          <EmblaCarouselAutoplay slides={AUTOPLAY_SLIDES} options={AUTOPLAY_OPTIONS} />
+          <EmblaCarouselAutoScroll slides={AUTOSCROLL_SLIDES} options={AUTOSCROLL_OPTIONS} speed={0.3} />
+          <EmblaCarouselAutoScroll slides={AUTOSCROLL_SLIDES_2} options={AUTOSCROLL_OPTIONS_2} speed={0.6} />
           <div className="section-3">
             <div className="item"></div>
             <div className="item"></div>
