@@ -1,0 +1,33 @@
+[
+    {
+        "bid_id": "bid_003",
+        "ticket_id": "ticket_002",
+        "price": 380.0,
+        "quantity": 1,
+        "buyer_id": "buyer_003",
+        "seller_id": "seller_002",
+        "conversation_history": [
+            "Round 1 - Buyer: I'm happy to start negotiations at $320 per ticket.",
+            "Round 1 - Seller: I can offer 395.00 per ticket for the FLOOR_PREMIUM seat.",
+            "Round 2 - Buyer: I can counter at 370 per ticket for a FLOOR_PREMIUM seat, staying close to market value.",
+            "Round 2 - Seller: I can offer 385.00 per ticket for the FLOOR_PREMIUM seat, which aligns with market value while respecting my price sensitivity.",
+            "Round 3 - Buyer: I can offer 380.00 per ticket for FLOOR_PREMIUM."
+        ]
+    },
+    {
+        "bid_id": "bid_006",
+        "ticket_id": "ticket_006",
+        "price": 365.0,
+        "quantity": 1,
+        "buyer_id": "buyer_006",
+        "seller_id": "seller_006",
+        "conversation_history": [
+            "Round 1 - Buyer: For 1 FLOOR_PREMIUM ticket, my initial offer is $320 per ticket.",
+            "Round 1 - Seller: Thanks for negotiating\u2014my counteroffer is $385 per Floor Premium ticket, reflecting near-market value while staying fair.",
+            "Round 2 - Buyer: I can do $360 per Floor Premium ticket.",
+            "Round 2 - Seller: Thanks for the offer\u2014my counteroffer is $370 per Floor Premium ticket, a fair middle ground closer to market value.",
+            "Round 3 - Buyer: I can do $365 per Floor Premium ticket.",
+            "Round 3 - Seller: I can accept your offer of $360 per Floor Premium ticket."
+        ]
+    }
+]

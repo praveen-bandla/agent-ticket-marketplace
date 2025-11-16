@@ -54,10 +54,10 @@ class MarketNegotiator:
                 filtered_pairs.append((bid_id, ticket_id))
         return filtered_pairs
     
-    async def _negotiate_single_pair(self, bid_id: str, ticket_id: str, submarket: SubMarket) -> Optional[Tuple[str, str, float, int]]:
+    async def _negotiate_single_pair(self, bid_id: str, ticket_id: str, submarket: SubMarket) -> Optional[Tuple[str, str, float, int, List[dict]]]:
         """
         Conducts a single negotiation between a bid and ticket.
-        Returns agreement (bid_id, ticket_id, price, quantity) or None for failed negotiations.
+        Returns agreement (bid_id, ticket_id, price, quantity, conversation_history) or None for failed negotiations.
         """
         self.logger.info(f"Starting negotiation for bid_id={bid_id}, ticket_id={ticket_id}")
         
@@ -89,10 +89,10 @@ class MarketNegotiator:
             self.logger.error(f"Invalid bid or ticket for {bid_id}-{ticket_id}: bid={bid is not None}, ticket={ticket is not None}")
             return None
 
-    async def negotiate_pairs_submarket(self, submarket: SubMarket) -> List[Optional[Tuple[str, str, float, int]]]:
+    async def negotiate_pairs_submarket(self, submarket: SubMarket) -> List[Optional[Tuple[str, str, float, int, List[dict]]]]:
         """
         Conducts negotiations for all bid-ticket pairs in the specified submarket.
-        Returns a list of agreements (bid_id, ticket_id, price, quantity) or None for failed negotiations.
+        Returns a list of agreements (bid_id, ticket_id, price, quantity, conversation_history) or None for failed negotiations.
         """
         filtered_pairs = self.retrieve_search_resuls_submarket(submarket)
         self.logger.info(f"Starting parallel negotiations for {len(filtered_pairs)} bid-ticket pairs")
