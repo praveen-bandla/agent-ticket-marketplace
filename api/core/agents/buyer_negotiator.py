@@ -56,7 +56,10 @@ class BuyerNegotiator:
         """
         Checks if the buyer accepted the seller's offer.
         """
-        return "ACCEPT" in message.upper()
+        price = self._extract_price_from_message(message)
+        if price == self.current_offer:
+            return True
+        return False
     
     def is_resolved(self) -> bool:
         """
@@ -79,7 +82,7 @@ class BuyerNegotiator:
         match = re.search(r'\d+', message)
         if match:
             return float(match.group())
-        return None
+        return -1
     
     def process_seller_response(self, message: str) -> str:
         """
@@ -93,9 +96,12 @@ class BuyerNegotiator:
             if seller_price is None:
                 raise ValueError("Could not extract price from seller's message.")
             # change self.current_offer to seller price
-            self.current_offer = seller_price
-            self.conversation_history.append(f'Round {self.num_rounds} - Seller: {message}')
-            self.num_rounds += 1
+            # elif seller_price == self.current_offer:
+            #     self.resolved = True
+            else:
+                self.current_offer = seller_price
+                self.conversation_history.append(f'Round {self.num_rounds} - Seller: {message}')
+                self.num_rounds += 1
 
         return None
     
@@ -112,11 +118,10 @@ class BuyerNegotiator:
         
         else:
             offered_price = self._extract_price_from_message(model_response)
-            if offered_price is None:
+            if offered_price == -1:
                 raise ValueError("Could not extract price from buyer's message.")
             self.current_offer = offered_price
             self.conversation_history.append(f'Round {self.num_rounds} - Buyer: {model_response}')
-            self.num_rounds += 1
         return model_response
 
        

@@ -56,7 +56,10 @@ class SellerNegotiator:
         """
         Checks if the seller accepted the buyer's offer.
         """
-        return "ACCEPT" in message.upper()
+        price = self._extract_price_from_message(message)
+        if price == self.current_offer:
+            return True
+        return False
     
     def is_resolved(self) -> bool:
         """
@@ -71,7 +74,7 @@ class SellerNegotiator:
         match = re.search(r'(\d+(\.\d{1,2})?)', message)
         if match:
             return float(match.group())
-        return None
+        return -1
     
     def process_buyer_response(self, message: str) -> str:
         """
@@ -82,12 +85,15 @@ class SellerNegotiator:
             
         else:
             buyer_price = self._extract_price_from_message(message)
-            if buyer_price is None:
+            if buyer_price == -1:
                 raise ValueError("Could not extract price from buyer's message.")
-            # change self.current_offer to buyer price
-            self.current_offer = buyer_price
-            self.conversation_history.append(f'Round {self.num_rounds} - Buyer: {message}')
-            self.num_rounds += 1
+            # elif buyer_price == self.current_offer:
+            #     self.resolved = True
+            else:
+                # change self.current_offer to buyer price
+                self.current_offer = buyer_price
+                self.conversation_history.append(f'Round {self.num_rounds} - Buyer: {message}')
+                self.num_rounds += 1
     
     def negotiate(self) -> str:
         """
@@ -102,9 +108,8 @@ class SellerNegotiator:
         
         else:
             offered_price = self._extract_price_from_message(model_response)
-            if offered_price is None:
+            if offered_price == -1:
                 raise ValueError("Could not extract price from seller's message.")
             self.current_offer = offered_price
             self.conversation_history.append(f'Round {self.num_rounds} - Seller: {model_response}')
-            self.num_rounds += 1
         return model_response

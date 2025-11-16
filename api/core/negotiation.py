@@ -66,12 +66,14 @@ class Negotiation:
             if self.buyer_negotiator.is_resolved():
                 self.is_resolved = True
                 self.agreement = (self.buyer_negotiator.current_offer, self.quantity)
+                self.shared_conversation_history = self.buyer_negotiator.get_conversation_history()
                 return self.agreement
 
             
             if self.seller_negotiator.is_resolved():
                 self.is_resolved = True
                 self.agreement = (self.seller_negotiator.current_offer, self.quantity)
+                self.shared_conversation_history = self.buyer_negotiator.get_conversation_history()
                 return self.agreement
             
             buyer_response = self.buyer_negotiator.negotiate()
@@ -81,6 +83,18 @@ class Negotiation:
 
             self.rounds += 1
 
+        if self.buyer_negotiator.is_resolved():
+                self.is_resolved = True
+                self.agreement = (self.buyer_negotiator.current_offer, self.quantity)
+                self.shared_conversation_history = self.buyer_negotiator.get_conversation_history()
+                return self.agreement
+
+            
+        if self.seller_negotiator.is_resolved():
+            self.is_resolved = True
+            self.agreement = (self.seller_negotiator.current_offer, self.quantity)
+            self.shared_conversation_history = self.buyer_negotiator.get_conversation_history()
+            return self.agreement
         self.shared_conversation_history = self.buyer_negotiator.get_conversation_history()
 
         return None

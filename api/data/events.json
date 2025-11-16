@@ -6,9 +6,9 @@
     "date": "2025-12-01T20:00:00",
     "reference_values":{
       "FLOOR_PREMIUM": 400,
-      "LOWER_BOWL": 100,
-      "UPPER_BOWL": 50,
-      "SIDE_GALLERY": 300
+      "LOWER_BOWL": 300,
+      "UPPER_BOWL": 80,
+      "SIDE_GALLERY": 200
     }
   }
 ]
