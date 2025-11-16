@@ -27,6 +27,7 @@ class Negotiation:
         self.is_resolved = False
         self.agreement: Optional[Tuple[float, int]] = None  # (price, quantity)
         self.rounds = 0
+        self.shared_conversation_history: List[dict] = []
 
     def resolve(self) -> Optional[Tuple[float, int]]:
         """

@@ -1,8 +1,8 @@
 [
   {
     "ticket_id": "ticket_001",
-    "seller_id": "001",
-    "event_id": "001",
+    "seller_id": "seller_001",
+    "event_id": "event_001",
     "group_id": "LOWER_BOWL",
     "quantity": 3,
     "price": 280,
@@ -13,8 +13,8 @@
   },
   {
     "ticket_id": "ticket_002",
-    "seller_id": "002",
-    "event_id": "001",
+    "seller_id": "seller_002",
+    "event_id": "event_001",
     "group_id": "FLOOR_PREMIUM",
     "quantity": 2,
     "price": 360,

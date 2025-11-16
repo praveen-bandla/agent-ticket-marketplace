@@ -38,3 +38,6 @@ class Ticket(BaseModel):
 
     def get_ticket_quantity(self) -> float:
         return self.quantity
+    
+    def get_group_id(self) -> str:
+        return self.group_id

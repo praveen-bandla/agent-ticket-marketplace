@@ -8,6 +8,7 @@ from typing import List
 from api.models.event import Event
 from configs import TICKETS_JSON, BIDS_JSON
 import json
+import numpy as np
 
 class SubMarket:
     """
@@ -61,42 +62,51 @@ class SubMarket:
         """
         Generates a summary of the submarket state.
         """
-        ticket_prices = [
-            ticket.get_ticket_price()
-            for ticket in self.tickets
-            for _ in range(ticket.quantity)
-        ]
 
-        bid_prices = [
-            bid.get_bid_price()
-            for bid in self.bids
-            for _ in range(bid.get_bid_quantity())
-        ]
+        ticket_prices = {}
+        bid_prices = {}
+        group_ids = self.event.get_group_ids()
+        for gid in group_ids:
+            ticket_prices[gid] = [
+                ticket.get_ticket_price()
+                for ticket in self.tickets
+                if ticket.get_group_id() == gid
+                for _ in range(ticket.quantity)
+            ]
+            bid_prices[gid] = [
+                bid.get_bid_price()
+                for bid in self.bids
+                if gid in bid.allowed_groups or len(bid.allowed_groups) == 0
+                for _ in range(bid.get_bid_quantity())
+            ]
+        
+        lines = []
+        for gid in group_ids:
+            tickets = ticket_prices.get(gid)
+            bids = bid_prices.get(gid)
+            num_tick, num_bids = len(tickets), len(bids)
+            avg_tick = sum(tickets) / num_tick if num_tick > 0 else "N/A"
+            avg_bid = sum(bids) / num_bids if num_bids > 0 else "N/A"
+            median_tick = np.median(tickets) if num_tick > 0 else "N/A"
+            median_bid = np.median(bids) if num_bids > 0 else "N/A"
+            lines.append(f"Group ID: {gid} -> num_tickets: {num_tick} avg_ticket_price: {avg_tick} median_ticket_price: {median_tick} num_bids: {num_bids} avg_bid_price: {avg_bid} median_bid_price: {median_bid}")
 
-        avg_ticket_price = sum(ticket_prices) / len(ticket_prices) if ticket_prices else 0
-        avg_bid_price = sum(bid_prices) / len(bid_prices) if bid_prices else 0
-        num_tickets = sum(ticket.quantity for ticket in self.tickets)
-        num_bids = sum(bid.get_bid_quantity() for bid in self.bids)
-        median_ticket_price = sorted(ticket_prices)[len(ticket_prices)//2] if ticket_prices else 0
-        median_bid_price = sorted(bid_prices)[len(bid_prices)//2] if bid_prices else 0
-
-        summary = (
-            f"  Number of Tickets: {num_tickets}\n"
-            f"  Number of Bids: {num_bids}\n"
-            f"  Average Ticket Price: ${avg_ticket_price:.2f}\n"
-            f"  Median Ticket Price: ${median_ticket_price:.2f}\n"
-            f"  Average Bid Price: ${avg_bid_price:.2f}\n"
-            f"  Median Bid Price: ${median_bid_price:.2f}\n"
-        )
+            summary = "\n".join(lines)
 
         return summary
+    
+    def get_reference_values(self) -> dict[str, float]:
+        """
+        Retrieves the reference values for this submarket's event.
+        """
+        return self.event.get_reference_values()
 
 # test
 
 if __name__ == "__main__":
-    import api.models.event as event
+    from api.models.event import Event
 
-    submarket = SubMarket(event=event.Event.from_event_id("001"), group_id="FLOOR_PREMIUM")
+    submarket = SubMarket(event=Event.get_event_by_id("event_001"), group_id="FLOOR_PREMIUM")
     print("Tickets:")
     for ticket in submarket.tickets:
         print(ticket)
