@@ -1,18 +1,18 @@
 [
   {
     "bid_id": "bid_001",
-    "buyer_id": "001",
-    "event_id": "001",
+    "buyer_id": "buyer_001",
+    "event_id": "event_001",
     "num_tickets": 2,
-    "max_price": 260,
-    "price": 200,
+    "max_price": 360,
+    "price": 300,
     "allowed_groups": [],
     "sensitivity_to_price": "low"
   },
   {
     "bid_id": "bid_002",
-    "buyer_id": "002",
-    "event_id": "001",
+    "buyer_id": "buyer_002",
+    "event_id": "event_001",
     "num_tickets": 3,
     "max_price": 140,
     "price": 100,

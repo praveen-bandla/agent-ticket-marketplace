@@ -11,7 +11,7 @@ class Buyer(BaseModel):
     buyer_name: str
     
     @classmethod
-    def from_buyer_id(cls, buyer_id: str) -> "Buyer":
+    def get_buyer_by_id(cls, buyer_id: str) -> "Buyer":
         with open(BUYERS, "r") as f:
             buyers = json.load(f)
         

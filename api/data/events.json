@@ -1,8 +1,14 @@
 [
   {
-    "event_id": "001",
+    "event_id": "event_001",
     "name": "The Weeknd - Live at MSG",
     "venue_id": "msg",
-    "date": "2025-12-01T20:00:00"
+    "date": "2025-12-01T20:00:00",
+    "reference_values":{
+      "FLOOR_PREMIUM": 400,
+      "LOWER_BOWL": 100,
+      "UPPER_BOWL": 50,
+      "SIDE_GALLERY": 300
+    }
   }
 ]
