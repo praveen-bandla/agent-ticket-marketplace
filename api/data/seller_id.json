@@ -18,5 +18,17 @@
   {
     "seller_id": "seller_005",
     "name": "Ethan Williams"
+  },
+  {
+    "seller_id": "seller_006",
+    "name": "Sophia Garcia"
+  },
+  {
+    "seller_id": "seller_007",
+    "name": "Isabella Martinez"
+  },
+  {
+    "seller_id": "seller_008",
+    "name": "James Wilson"
   }
 ]

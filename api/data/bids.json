@@ -3,8 +3,8 @@
     "bid_id": "bid_001",
     "buyer_id": "buyer_001",
     "event_id": "event_001",
-    "num_tickets": 2,
-    "max_price": 260,
+    "num_tickets": 1,
+    "max_price": 400,
     "price": 200,
     "allowed_groups": [],
     "sensitivity_to_price": "low"
@@ -13,8 +13,68 @@
     "bid_id": "bid_002",
     "buyer_id": "buyer_002",
     "event_id": "event_001",
-    "num_tickets": 3,
-    "max_price": 140,
+    "num_tickets": 1,
+    "max_price": 280,
+    "price": 200,
+    "allowed_groups": ["SIDE_GALLERY"],
+    "sensitivity_to_price": "high"
+  },
+  {
+    "bid_id": "bid_003",
+    "buyer_id": "buyer_003",
+    "event_id": "event_001",
+    "num_tickets": 1,
+    "max_price": 600,
+    "price": 100,
+    "allowed_groups": [],
+    "sensitivity_to_price": "low"
+  },
+  {
+    "bid_id": "bid_004",
+    "buyer_id": "buyer_004",
+    "event_id": "event_001",
+    "num_tickets": 1,
+    "max_price": 400,
+    "price": 300,
+    "allowed_groups": ["LOWER_BOWL", "SIDE_GALLERY"],
+    "sensitivity_to_price": "high"
+  },
+  {
+    "bid_id": "bid_005",
+    "buyer_id": "buyer_005",
+    "event_id": "event_001",
+    "num_tickets": 1,
+    "max_price": 900,
+    "price": 120,
+    "allowed_groups": [],
+    "sensitivity_to_price": "low"
+  },
+  {
+    "bid_id": "bid_006",
+    "buyer_id": "buyer_006",
+    "event_id": "event_001",
+    "num_tickets": 1,
+    "max_price": 400,
+    "price": 250,
+    "allowed_groups": ["FLOOR_PREMIUM"],
+    "sensitivity_to_price": "high"
+  },
+  {
+    "bid_id": "bid_007",
+    "buyer_id": "buyer_007",
+    "event_id": "event_001",
+    "num_tickets": 1,
+    "max_price": 350,
+    "price": 150,
+    "allowed_groups": ["FLOOR_PREMIUM", "LOWER_BOWL"],
+    "sensitivity_to_price": "low"
+  },
+  {
+    "bid_id": "bid_008",
+    "buyer_id": "buyer_008",
+    "event_id": "event_001",
+    "num_tickets": 1,
+    "max_price": 120,
     "price": 100,
     "allowed_groups": ["UPPER_BOWL", "SIDE_GALLERY"],
     "sensitivity_to_price": "high"

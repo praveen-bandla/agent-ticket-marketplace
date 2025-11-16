@@ -1,0 +1,13 @@
+[
+  { "bid_id": "bid_001", "ticket_id": "ticket_001" },
+  { "bid_id": "bid_002", "ticket_id": "ticket_001" },
+  { "bid_id": "bid_003", "ticket_id": "ticket_002" },
+  { "bid_id": "bid_004", "ticket_id": "ticket_003" },
+  { "bid_id": "bid_002", "ticket_id": "ticket_004" },
+  { "bid_id": "bid_005", "ticket_id": "ticket_005" },
+  { "bid_id": "bid_006", "ticket_id": "ticket_006" },
+  { "bid_id": "bid_007", "ticket_id": "ticket_007" },
+  { "bid_id": "bid_008", "ticket_id": "ticket_008" },
+  { "bid_id": "bid_003", "ticket_id": "ticket_007" },
+  { "bid_id": "bid_004", "ticket_id": "ticket_008" }
+]
