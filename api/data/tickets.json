@@ -2,7 +2,7 @@
   {
     "ticket_id": "t_001",
     "seller_id": "001",
-    "event_id": "ev_001",
+    "event_id": "001",
     "group_id": "LOWER_BOWL",
     "quantity": 3,
     "ask_price": 280,
@@ -14,7 +14,7 @@
   {
     "ticket_id": "t_002",
     "seller_id": "002",
-    "event_id": "ev_001",
+    "event_id": "001",
     "group_id": "FLOOR_PREMIUM",
     "quantity": 2,
     "ask_price": 360,

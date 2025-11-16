@@ -3,6 +3,7 @@ Class for keeping track of a submarket context.
 """
 
 from api.models.ticket import Ticket
+from api.models.bid import Bid
 from typing import List
 from api.models.event import Event
 from configs import TICKETS_JSON, BIDS_JSON
@@ -36,19 +37,22 @@ class SubMarket:
         
         return matching_tickets
     
-    def _load_bids(self) -> List[Ticket]:
+    def _load_bids(self) -> List[Bid]:
         """
         Loads bids from json that match this submarket's criteria.
+        Bid matches if:
+        - event_id matches
+        - allowed_groups is empty (accepts all groups) OR group_id is in allowed_groups
         """
         with open(BIDS_JSON, "r") as f:
             all_bids = json.load(f)
         
-        # Filter bids matching this submarket (event_id and group_id)
+        # Filter bids matching this submarket
         matching_bids = [
-            Ticket(**bid_data)
+            Bid(**bid_data)
             for bid_data in all_bids
             if bid_data["event_id"] == self.event_id
-            and bid_data["group_id"] == self.group_id
+            and (len(bid_data["allowed_groups"]) == 0 or self.group_id in bid_data["allowed_groups"])
         ]
         
         return matching_bids
@@ -68,13 +72,19 @@ class SubMarket:
 
 # test
 
-if __name__ == "__main__":
-    # # add path to PYTHONPATH and run this file to test
-    # import os
-    # import sys
-    # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
-    import api.models.event as event
-    
-    submarket = SubMarket(venue_id="venue1", event_id="event1")
-    print(f"Number of tickets in submarket: {submarket.get_num_tickets()}")
-    print(f"Number of bids in submarket: {submarket.get_num_bids()}")
+# if __name__ == "__main__":
+#     # # add path to PYTHONPATH and run this file to test
+#     # import os
+#     # import sys
+#     # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+#     import api.models.event as event
+
+#     submarket = SubMarket(event=event.Event.from_event_id("001"), group_id="FLOOR_PREMIUM")
+#     print(f"Number of tickets in submarket: {submarket.get_num_tickets()}")
+#     print(f"Number of bids in submarket: {submarket.get_num_bids()}")
+#     print("Tickets:")
+#     for ticket in submarket.tickets:
+#         print(ticket)
+#     print("Bids:")
+#     for bid in submarket.bids:
+#         print(bid)

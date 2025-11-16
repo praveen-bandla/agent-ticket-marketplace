@@ -30,9 +30,3 @@ class Event(BaseModel):
             date=event_data["date"],
             venue=venue
         )
-    
-
-if __name__ == "__main__":
-    # Simple test
-    event = Event.from_event_id("001")
-    print(event)

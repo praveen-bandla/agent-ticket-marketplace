@@ -2,18 +2,20 @@
   {
     "bid_id": "bid_001",
     "buyer_id": "001",
-    "event_id": "ev_001",
+    "event_id": "001",
     "num_tickets": 2,
-    "max_price_per_ticket": 260,
+    "max_price": 260,
+    "price": 200,
     "allowed_groups": [],
     "sensitivity_to_price": "low"
   },
   {
     "bid_id": "bid_002",
     "buyer_id": "002",
-    "event_id": "ev_001",
+    "event_id": "001",
     "num_tickets": 3,
-    "max_price_per_ticket": 140,
+    "max_price": 140,
+    "price": 100,
     "allowed_groups": ["UPPER_BOWL", "SIDE_GALLERY"],
     "sensitivity_to_price": "high"
   }
