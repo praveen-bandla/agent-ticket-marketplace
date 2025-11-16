@@ -102,3 +102,126 @@ async def get_buyer_intent(payload: BuyerQuery):
         write_search_results(search_results)
         messages.append({"role": "assistant", "content": response})
         return messages
+
+
+
+
+from fastapi import WebSocket, WebSocketDisconnect
+
+@router.websocket("/intent/ws")
+async def ws_buyer_intent(websocket: WebSocket):
+    system_prompt = """
+    Extract these fields from the given buyer request. Check if these fields are provided. The buyer doesn't need to mention them explicitely and it's your job to understand the text.
+    Required fields:
+    - event_name
+    - venue
+    - num_tickets
+    - price
+    - max_price
+
+    Optional:
+    - seat_type (default "any")
+    - sensitivity (default "normal")
+    - certainty (default "definitely")
+
+    clarifying_questions if not provided already:
+    "What artist or event are you looking for?",
+    "Which venue or place do you prefer?",
+    "How many tickets do you need?",
+    "What is your starting offer per ticket?",
+    "What is the most you're willing to pay per ticket?"
+
+    Generate a single question that sounds natural to request values for any required missing fields.
+
+    Respond ONLY in JSON format with:
+    {
+        "extracted": {
+            "event_name": "...",
+            "num_tickets": ...,
+            "max_price": ...,
+            "seat_type": "...",
+            "sensitivity": "...",
+            "certainty": "..."
+        },
+        "missing": ["venue", "price"],
+        "question": "Question for list of missing items",
+        "results": {
+            "event_id": "...",
+            "num_tickets": ...,
+            "max_price": ...,
+            "price": ...,
+            "allowed_groups": [...],
+            "sensitivity_to_price": "..."
+        }
+    }
+
+    Rules:
+    - If unsure about a field, leave it null.
+    - Do NOT guess.
+    - Do NOT ask questions here. The backend handles follow-up.
+    """
+    await websocket.accept()
+    try:
+        payload_raw = await websocket.receive_text()
+        payload = BuyerQuery(**json.loads(payload_raw))
+
+        # Build messages EXACTLY as before
+        if isinstance(payload.query, list) and len(payload.query) > 0:
+            messages = payload.query
+        else:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": f"Events data: {json.dumps(get_events())}"},
+                {"role": "system", "content": f"Venues data: {json.dumps(get_venues())}"},
+                {"role": "user", "content": f"Buyer request: {payload.query}. Please extract the information"}
+            ]
+
+        # 1) Send intermediate status
+        await websocket.send_text(json.dumps({"status": "parsing"}))
+
+        # 2) First LLM call
+        response = call_openrouter(messages).replace("```json", "").replace("```", "")
+        await websocket.send_text(json.dumps({"phase": "extraction", "data": response}))
+
+        missing = json.loads(response)["missing"]
+        if len(missing) > 0:
+            messages.append({"role": "assistant", "content": response})
+
+            await websocket.send_text(json.dumps({
+                "phase": "needs_clarification",
+                "messages": messages
+            }))
+            return
+
+        # 3) Filtering tickets
+        await websocket.send_text(json.dumps({"status": "filtering"}))
+
+        bid = json.loads(response)["results"]
+        bid["bid_id"] = str(uuid.uuid4())
+        bid["buyer_id"] = str(uuid.uuid4())
+        append_bid(bid)
+
+        event = get_event_by_id(bid["event_id"])
+
+        messages.pop(0)
+        messages.append({"role": "user", "content": f"Bid parameters: {str(bid)}. Now filter the tickets."})
+
+        messages.append({"role": "system", "content": f"Tickets data: {json.dumps(list_tickets())}"})
+        messages.append({"role": "system", "content": f"Seat priority: {event['reference_values']}"})
+        messages.append({"role": "assistant", "content": "Filtering tickets..."})
+
+        response = call_openrouter(messages).replace("```json", "").replace("```", "")
+        tickets = json.loads(response)
+
+        search_results = [{"bid_id": bid["bid_id"], "ticket_id": t["ticket_id"]} for t in tickets]
+        write_search_results(search_results)
+
+        await websocket.send_text(json.dumps({
+            "phase": "final_tickets",
+            "tickets": tickets
+        }))
+
+        await websocket.close()
+
+    except WebSocketDisconnect:
+        print("Client disconnected")
