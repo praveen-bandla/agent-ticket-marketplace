@@ -161,12 +161,15 @@ async def ws_buyer_intent(websocket: WebSocket):
     - Do NOT ask questions here. The backend handles follow-up.
     """
     await websocket.accept()
+    print("WS accepted")
     try:
         payload_raw = await websocket.receive_text()
         payload = BuyerQuery(**json.loads(payload_raw))
 
+        print("Payload:", payload)
+
         # Build messages EXACTLY as before
-        if isinstance(payload.query, list) and len(payload.query) > 0:
+        if isinstance(payload.query, list) and len(payload.query) > 1:
             messages = payload.query
         else:
             messages = [
@@ -179,11 +182,15 @@ async def ws_buyer_intent(websocket: WebSocket):
         # 1) Send intermediate status
         await websocket.send_text(json.dumps({"status": "parsing"}))
 
+        print("Calling OpenRouter...")
+
         # 2) First LLM call
         response = call_openrouter(messages).replace("```json", "").replace("```", "")
         await websocket.send_text(json.dumps({"phase": "extraction", "data": response}))
 
-        missing = json.loads(response)["missing"]
+        print("LLM response:", response[:200])
+
+        missing = safe_json_loads(response)["missing"]
         if len(missing) > 0:
             messages.append({"role": "assistant", "content": response})
 
@@ -196,7 +203,7 @@ async def ws_buyer_intent(websocket: WebSocket):
         # 3) Filtering tickets
         await websocket.send_text(json.dumps({"status": "filtering"}))
 
-        bid = json.loads(response)["results"]
+        bid = safe_json_loads(response)["results"]
         bid["bid_id"] = str(uuid.uuid4())
         bid["buyer_id"] = str(uuid.uuid4())
         append_bid(bid)
@@ -211,7 +218,7 @@ async def ws_buyer_intent(websocket: WebSocket):
         messages.append({"role": "assistant", "content": "Filtering tickets..."})
 
         response = call_openrouter(messages).replace("```json", "").replace("```", "")
-        tickets = json.loads(response)
+        tickets = safe_json_loads(response)
 
         search_results = [{"bid_id": bid["bid_id"], "ticket_id": t["ticket_id"]} for t in tickets]
         write_search_results(search_results)
@@ -225,3 +232,20 @@ async def ws_buyer_intent(websocket: WebSocket):
 
     except WebSocketDisconnect:
         print("Client disconnected")
+
+
+import json  # if allowed, or write a simple fixer
+
+def safe_json_loads(s: str):
+    try:
+        return json.loads(s)
+    except:
+        # attempt to extract a JSON object from text
+        import re
+        match = re.search(r"\{.*\}", s, re.DOTALL)
+        if match:
+            try:
+                return json.loads(match.group(0))
+            except:
+                pass
+        raise ValueError("Model returned invalid JSON")

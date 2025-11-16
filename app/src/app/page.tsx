@@ -135,17 +135,24 @@ export default function Home() {
   };
 
   const search2 = async () => {
-    let value = sanitizeInput(inputRef.current!.value);
-    if (!value) return;
+    let value = inputRef.current!.value;
+    value = sanitizeInput(value);
+    if (!value || value.length < 5 && value.length > 1024) { return; }
 
     setChatting(true);
+    inputRef.current!.value = '';
+    autosize();
+    inputRef.current!.disabled = true;
     appendMessage("user", value);
+
+    let input: string | Message[] = search_data;
+    input.push({ role: "user", content: value });
 
     let socket = new WebSocket("ws://127.0.0.1:8000/buyer/intent/ws");
 
     socket.onopen = () => {
       let payload = {
-        query: [...search_data, { role: "user", content: value }]
+        query: input
       };
       socket.send(JSON.stringify(payload));
     };
@@ -155,28 +162,49 @@ export default function Home() {
 
       if (msg.status === "parsing") {
         appendMessage("agent", "Analyzing your request...");
+        setSearchData(prev => [...prev, { role: "assistant", content: "Analyzing your request..." }]);
       }
 
       if (msg.phase === "extraction") {
-        let response = JSON.parse(msg.data);
+        const response = JSON.parse(msg.data);
+
         if ("question" in response) {
-          appendMessage("agent", response.question);
+          const q = response.question;
+
+          appendMessage("agent", q);
+          setSearchData(prev => [...prev, { role: "assistant", content: q }]);
+        } else {
+          appendMessage("agent", JSON.stringify(response));
+          setSearchData(prev => [...prev, { role: "assistant", content: JSON.stringify(response) }]);
         }
       }
 
       if (msg.status === "filtering") {
         appendMessage("agent", "Filtering tickets...");
+        setSearchData(prev => [...prev, { role: "assistant", content: "Filtering tickets..." }]);
       }
 
       if (msg.phase === "final_tickets") {
-        appendMessage("agent", "Here are the best matches:");
-        console.log(msg.tickets);
+        appendMessage("agent", "Here are your top matches!");
+        appendMessage("agent", JSON.stringify(msg.tickets));
+
+        setSearchData(prev => [
+          ...prev,
+          { role: "assistant", content: "Here are your top matches!" },
+          { role: "assistant", content: JSON.stringify(msg.tickets) }
+        ]);
       }
     };
+
 
     socket.onclose = () => {
       console.log("WebSocket closed");
     };
+
+    const container = chatRef.current!;
+    container.scrollTop = container.scrollHeight;
+
+    inputRef.current!.disabled = false;
   };
 
 
