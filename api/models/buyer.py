@@ -16,8 +16,8 @@ class Buyer(BaseModel):
             buyers = json.load(f)
         
         buyer_data = next((b for b in buyers if b["buyer_id"] == buyer_id), None)
-
-        return cls(buyer_id=buyer_data["buyer_id"], buyer_name=buyer_data["name"])
+        # TODO: Handle exception
+        return cls(buyer_id=buyer_data["buyer_id"], buyer_name=buyer_data["name"]) # type: ignore
     
 
 class BuyerQuery(BaseModel):
