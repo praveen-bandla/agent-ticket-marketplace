@@ -27,7 +27,7 @@ main {
     background-color: #000;
     width: 100vw;
     min-height: 100vh;
-    padding: 52px 0px 50px;
+    padding: 32px 0px 50px;
     position: relative;
 }
 
@@ -208,6 +208,8 @@ main {
     font-size: 15px;
     line-height: 1.5;
     letter-spacing: .2px;
+    word-break: normal;
+    overflow: scroll;
 }
 .user-msg p, .agent-msg p {
     margin: 0;

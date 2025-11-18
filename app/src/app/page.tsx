@@ -54,7 +54,7 @@ export default function Home() {
     }
     setTagline(getTagline());
 
-    inputRef.current!.addEventListener('keydown', function(e) {
+    inputRef.current!.addEventListener('keyup', function(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         search2();
       }
@@ -134,6 +134,12 @@ export default function Home() {
     inputRef.current!.disabled = false;
   };
 
+  const updateSearchState = (role="user", value: string) => {
+    let input: string | Message[] = search_data;
+    input.push({ role: role, content: value });
+    setSearchData(input);
+  }
+
   const search2 = async () => {
     let value = inputRef.current!.value;
     value = sanitizeInput(value);
@@ -144,55 +150,58 @@ export default function Home() {
     autosize();
     inputRef.current!.disabled = true;
     appendMessage("user", value);
-
-    let input: string | Message[] = search_data;
-    input.push({ role: "user", content: value });
+    updateSearchState("user", value);
 
     let socket = new WebSocket("ws://127.0.0.1:8000/buyer/intent/ws");
 
     socket.onopen = () => {
-      let payload = {
-        query: input
-      };
-      socket.send(JSON.stringify(payload));
+      socket.send(JSON.stringify({
+        query: [...search_data]
+      }));
+
     };
 
     socket.onmessage = (event) => {
       const msg = JSON.parse(event.data);
 
-      if (msg.status === "parsing") {
+      if (msg.phase === "parsing") {
         appendMessage("agent", "Analyzing your request...");
-        setSearchData(prev => [...prev, { role: "assistant", content: "Analyzing your request..." }]);
+        updateSearchState("assistant", "Analyzing your request...");
       }
 
       if (msg.phase === "extraction") {
-        const response = JSON.parse(msg.data);
+        console.log()
+        const response = msg.messages.at(-1).content;
 
         if ("question" in response) {
           const q = response.question;
 
           appendMessage("agent", q);
-          setSearchData(prev => [...prev, { role: "assistant", content: q }]);
+          updateSearchState("assistant", q);
         } else {
           appendMessage("agent", JSON.stringify(response));
-          setSearchData(prev => [...prev, { role: "assistant", content: JSON.stringify(response) }]);
+          updateSearchState("assistant", JSON.stringify(response));
         }
       }
 
-      if (msg.status === "filtering") {
+      if (msg.phase === "filtering") {
         appendMessage("agent", "Filtering tickets...");
-        setSearchData(prev => [...prev, { role: "assistant", content: "Filtering tickets..." }]);
+        updateSearchState("assistant", "Filtering tickets...");
       }
 
       if (msg.phase === "final_tickets") {
-        appendMessage("agent", "Here are your top matches!");
-        appendMessage("agent", JSON.stringify(msg.tickets));
+        appendMessage("agent", `Here are your top matches!\n${JSON.stringify(msg.tickets)}`);
+        updateSearchState("assistant", JSON.stringify(msg.tickets));
+      }
 
-        setSearchData(prev => [
-          ...prev,
-          { role: "assistant", content: "Here are your top matches!" },
-          { role: "assistant", content: JSON.stringify(msg.tickets) }
-        ]);
+      if (msg.phase === "final_transaction_start") {
+        appendMessage("agent", `Started negotiating...`);
+        updateSearchState("assistant", JSON.stringify(msg.best_order));
+      }
+
+      if (msg.phase === "final_transaction") {
+        appendMessage("agent", `Here is the result!\n${JSON.stringify(msg.best_order)}`);
+        updateSearchState("assistant", JSON.stringify(msg.best_order));
       }
     };
 
@@ -203,7 +212,6 @@ export default function Home() {
 
     const container = chatRef.current!;
     container.scrollTop = container.scrollHeight;
-
     inputRef.current!.disabled = false;
   };
 

@@ -2,6 +2,7 @@ import json
 from typing import List
 import uuid
 from fastapi import APIRouter
+from api.core.market_negotiate import negotiate
 from api.core.sub_market import SubMarket
 from api.models.buyer import BuyerQuery
 from api.models.event import Event
@@ -67,6 +68,7 @@ async def get_buyer_intent(payload: BuyerQuery):
     - If unsure about a field, leave it null.
     - Do NOT guess.
     - Do NOT ask questions here. The backend handles follow-up.
+    - Only respond in the given JSON format.
     """
 
     if isinstance(payload.query, List) and len(payload.query) > 0:
@@ -146,7 +148,7 @@ async def ws_buyer_intent(websocket: WebSocket):
         "missing": ["venue", "price"],
         "question": "Question for list of missing items",
         "results": {
-            "event_id": "...",
+            "event_id": "event_001"
             "num_tickets": ...,
             "max_price": ...,
             "price": ...,
@@ -159,6 +161,8 @@ async def ws_buyer_intent(websocket: WebSocket):
     - If unsure about a field, leave it null.
     - Do NOT guess.
     - Do NOT ask questions here. The backend handles follow-up.
+    - Only respond in the given JSON format.
+    - Don't show reasoning
     """
     await websocket.accept()
     print("WS accepted")
@@ -170,6 +174,7 @@ async def ws_buyer_intent(websocket: WebSocket):
 
         # Build messages EXACTLY as before
         if isinstance(payload.query, list) and len(payload.query) > 1:
+            payload.query.insert(0, {"role": "system", "content": system_prompt})
             messages = payload.query
         else:
             messages = [
@@ -180,41 +185,51 @@ async def ws_buyer_intent(websocket: WebSocket):
             ]
 
         # 1) Send intermediate status
-        await websocket.send_text(json.dumps({"status": "parsing"}))
+        await websocket.send_text(json.dumps({
+            "phase": "parsing",
+            "messages": messages
+        }))
 
         print("Calling OpenRouter...")
 
         # 2) First LLM call
         response = call_openrouter(messages).replace("```json", "").replace("```", "")
-        await websocket.send_text(json.dumps({"phase": "extraction", "data": response}))
 
-        print("LLM response:", response[:200])
+        print("LLM response:", response[:1024])
 
         missing = safe_json_loads(response)["missing"]
+        print(missing)
+        print(messages)
         if len(missing) > 0:
-            messages.append({"role": "assistant", "content": response})
-
+            messages.append({"role": "assistant", "content": safe_json_loads(response)})
             await websocket.send_text(json.dumps({
-                "phase": "needs_clarification",
+                "phase": "extraction",
                 "messages": messages
             }))
             return
 
-        # 3) Filtering tickets
-        await websocket.send_text(json.dumps({"status": "filtering"}))
-
         bid = safe_json_loads(response)["results"]
         bid["bid_id"] = str(uuid.uuid4())
         bid["buyer_id"] = str(uuid.uuid4())
+        bid["event_id"] = 'event_001'
         append_bid(bid)
+
+        # 3) Filtering tickets
+        messages.pop(0)
+        messages.append({"role": "assistant", "content": str(bid)})
+        await websocket.send_text(json.dumps({
+            "phase": "filtering",
+            "messages": messages
+        }))
 
         event = get_event_by_id(bid["event_id"])
 
-        messages.pop(0)
-        messages.append({"role": "user", "content": f"Bid parameters: {str(bid)}. Now filter the tickets."})
+        messages.append({"role": "user", "content": f"Bid parameters: {str(bid)}. Now the task has changed where you need to filter the tickets and return in the same list of tickets JSON objects."})
 
         messages.append({"role": "system", "content": f"Tickets data: {json.dumps(list_tickets())}"})
-        messages.append({"role": "system", "content": f"Seat priority: {event['reference_values']}"})
+        messages.append({"role": "system", "content": f"Seat priority: Find the list of tickets that match the criteria provided by the user. List the top 5 based on price and seat's group_id. The seat groups are prioritized base on this relationship: {event['reference_values']}"})
+        messages.append({"role": "system", "content": f"Rules: - Only respond in the given JSON format. - Don't show reasoning"})
+        messages.append({"role": "assistant", "content": "I'll now filter the available tickets and prove output in clean JSON format..."})
         messages.append({"role": "assistant", "content": "Filtering tickets..."})
 
         response = call_openrouter(messages).replace("```json", "").replace("```", "")
@@ -227,6 +242,48 @@ async def ws_buyer_intent(websocket: WebSocket):
             "phase": "final_tickets",
             "tickets": tickets
         }))
+
+        await websocket.send_text(json.dumps({
+            "phase": "final_transaction_start",
+            "best_order": {
+                "status": "In progress",
+                "message": "Negotiating..."
+            }
+        }))
+
+        try:
+            results = await negotiate()
+        except:
+            pass
+
+        await websocket.send_text(json.dumps({
+            "phase": "final_transaction",
+            "best_order": {
+                "status": "failed",
+                "message": "failed to reach a deal."
+            }
+        }))
+
+        # if not results[0]:
+        #     await websocket.send_text(json.dumps({
+        #         "phase": "final_transaction",
+        #         "best_order": {
+        #             "status": "failed",
+        #             "message": "failed to reach a deal."
+        #         }
+        #     }))
+        # else:
+        #     
+        #     await websocket.send_text(json.dumps({
+        #         "phase": "final_transaction",
+        #         "best_order": {
+        #             "status": "failed",
+        #             "message": {
+        #                 "ticket_id": results[0]["ticket_id"],
+        #                 "price": str(results[0]["price"])
+        #             }
+        #         }}
+        #     }))
 
         await websocket.close()
 
@@ -248,4 +305,5 @@ def safe_json_loads(s: str):
                 return json.loads(match.group(0))
             except:
                 pass
+        print(s)
         raise ValueError("Model returned invalid JSON")

@@ -37,5 +37,6 @@ def append_bid(new_bid):
         json.dump(bids, f, indent=2)
 
 def write_search_results(search_results):
-    with open(SEARCH_RESULTS_PATH, "w") as f:
-        json.dump(search_results, f, indent=2)
+    pass
+    # with open(SEARCH_RESULTS_PATH, "w") as f:
+    #     json.dump(search_results, f, indent=2)
